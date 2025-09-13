@@ -1,25 +1,37 @@
-# 📚 Bookstore & Rental System
+📚 Bookstore & Rental System - Python Desktop Application
+=========================================================
 
-A bookstore management system for **selling and renting books** built with 🐍 **Python (Tkinter + SQLite)**.  
-It includes user authentication, sales/rental operations, book catalog management, and PDF invoice export.  
+Bookstore & Rental System is a **desktop application** built with Python (Tkinter) and SQLite for managing **book sales and rentals**.  
+It supports user authentication, adding/viewing books, renting/selling books, and generating PDF invoices.
 
----
+🧩 Features
+-----------
+- 🔑 User Signup and Login
+- 📖 Book Management:
+  - Add new books
+  - View available books
+  - Rent books
+  - Sell books
+- 🧾 Generate PDF invoices for sales and rentals
+- 🎨 Simple and interactive GUI with Tkinter
 
-## 🚀 Features
-- 🔑 **User Authentication** → Login & Register system  
-- 📖 **Book Management** → Add, view, rent, and sell books  
-- 🧾 **PDF Export** → Generate invoices for rentals/sales  
-- 🎨 **UI with Tkinter** → Simple and interactive interface  
-- 💾 **Database** → SQLite lightweight storage  
+🗄️ Technologies Used
+--------------------
+- Python (Tkinter)
+- SQLite
+- ReportLab (PDF generation)
+- Git & GitHub
 
----
+🖼️ Screenshots
+---------------
+Screenshots of the UI are available in the `/screenshots` folder.
 
-## 🛠️ Tech Stack
-- **Languages:** Python  
-- **GUI:** Tkinter  
-- **Database:** SQLite  
-- **Reports:** ReportLab (PDF)  
+🛠️ Setup Instructions
+----------------------
+1. Clone or download the project.  
+2. Navigate to the project folder:  
+```bash
+cd bookstore-rental-system
 
----
-
-## 📂 Project Structure
+📜 License
+This project was created by PySquad for educational purposes. You are free to learn from it, but not allowed to use it commercially without permission.
