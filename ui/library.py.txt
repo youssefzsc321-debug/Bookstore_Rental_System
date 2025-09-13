@@ -1,0 +1,332 @@
+import tkinter as tk
+from tkinter import ttk, messagebox
+from datetime import datetime
+import random
+from utils.pdf_export import export_pdf
+
+BACKGROUND_COLOR = "#f7f7f9"
+HEADER_COLOR = '#4f46e5'
+BUTTON_COLOR = '#4f46e5'
+
+class LibraryApp:
+    def __init__(self, root, db):
+        self.root = root
+        self.db = db
+        self.selected_books = []  
+        self.show_library()
+
+    def clear_window(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+    def show_library(self):
+        self.clear_window()
+        self.root.title("📚 Bookstore & Rental System")
+        self.root.configure(background='#f9f9fb')
+    
+        main_container = tk.Frame(self.root, bg='#f9f9fb')
+        main_container.pack(fill=tk.BOTH, expand=True)
+        
+        header_frame = tk.Frame(main_container, bg=HEADER_COLOR)
+        header_frame.pack(fill=tk.X, padx=0, pady=0)
+        
+        title_label = tk.Label(header_frame, text="📚 Bookstore & Rental System 📚", 
+                             font=('Helvetica', 24, 'bold'), bg=HEADER_COLOR, fg='white')
+        title_label.pack(pady=15)
+        
+        content_frame = tk.Frame(main_container, bg='#ffffff')
+        content_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        # ---------------- Left Panel ---------------- #
+        left_panel = tk.LabelFrame(content_frame, text="💼 Sales & Rental Operations",
+                                 font=('Helvetica', 12, 'bold'), bg='#f3f4f6', fg='#111827')
+        left_panel.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
+        
+        form_frame = tk.Frame(left_panel, bg='#f3f4f6')
+        form_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        tk.Label(form_frame, text="Operation Type:", font=('Helvetica', 12), 
+                bg='#f3f4f6').grid(row=0, column=0, sticky="w", pady=5)
+        self.comboOperation = ttk.Combobox(form_frame, font=('Helvetica', 12), 
+                                         state="readonly", values=("Sale", "Rental"))
+        self.comboOperation.grid(row=0, column=1, sticky="w", pady=5, padx=5)
+        self.comboOperation.bind("<<ComboboxSelected>>", self.update_book_price)
+    
+        tk.Label(form_frame, text="Book Title:", font=('Helvetica', 12), 
+                bg='#f3f4f6').grid(row=1, column=0, sticky="we", pady=5)
+        self.txtBookTitle = ttk.Combobox(form_frame, font=('Helvetica', 12))
+        self.txtBookTitle.grid(row=1, column=1, sticky="w", pady=5, padx=5)
+        self.txtBookTitle.bind("<<ComboboxSelected>>", self.update_book_price)
+        
+        tk.Label(form_frame, text="Book Price:", font=('Helvetica', 12), 
+                bg='#f3f4f6').grid(row=2, column=0, sticky="we", pady=5)
+        self.txtBookPrice = tk.Entry(form_frame, font=('Helvetica', 12), state='readonly')
+        self.txtBookPrice.grid(row=2, column=1, sticky="w", pady=5, padx=5)
+        
+        tk.Label(form_frame, text="Selected Books:", font=('Helvetica', 12), 
+                bg='#f3f4f6').grid(row=3, column=0, sticky="we", pady=5)
+        self.selected_books_list = tk.Listbox(form_frame, font=('Helvetica', 12), height=4)
+        self.selected_books_list.grid(row=3, column=1, sticky="w", pady=5, padx=5)
+        
+        book_btn_frame = tk.Frame(form_frame, bg='#f3f4f6')
+        book_btn_frame.grid(row=4, column=1, sticky="w", pady=5)
+        tk.Button(book_btn_frame, text="Add Book", font=('Helvetica', 10), 
+                 bg=HEADER_COLOR, fg="white", command=self.add_book_to_transaction).pack(side=tk.LEFT, padx=5)
+        tk.Button(book_btn_frame, text="Remove Book", font=('Helvetica', 10), 
+                 bg="#ef4444", fg="white", command=self.remove_book_from_transaction).pack(side=tk.LEFT, padx=5)
+        
+        tk.Label(form_frame, text="Total Price:", font=('Helvetica', 12), 
+                bg='#f3f4f6').grid(row=5, column=0, sticky="we", pady=5)
+        self.total_price_var = tk.StringVar(value="$0.00")
+        self.total_price_label = tk.Label(form_frame, textvariable=self.total_price_var, 
+                                        font=('Helvetica', 12, 'bold'), bg='#f3f4f6')
+        self.total_price_label.grid(row=5, column=1, sticky="w", pady=5, padx=5)
+        
+        tk.Label(form_frame, text="Customer Name:", font=('Helvetica', 12), 
+                bg='#f3f4f6').grid(row=6, column=0, sticky="we", pady=5)
+        self.txtCustomerName = tk.Entry(form_frame, font=('Helvetica', 12))
+        self.txtCustomerName.grid(row=6, column=1, sticky="w", pady=5, padx=5)
+        
+        tk.Label(form_frame, text="Phone Number:", font=('Helvetica', 12), 
+                bg='#f3f4f6').grid(row=7, column=0, sticky="we", pady=5)
+        self.txtPhone = tk.Entry(form_frame, font=('Helvetica', 12))
+        self.txtPhone.grid(row=7, column=1, sticky="w", pady=5, padx=5)
+        
+        tk.Label(form_frame, text="Email:", font=('Helvetica', 12), 
+                bg='#f3f4f6').grid(row=8, column=0, sticky="we", pady=5)
+        self.txtEmail = tk.Entry(form_frame, font=('Helvetica', 12))
+        self.txtEmail.grid(row=8, column=1, sticky="w", pady=5, padx=5)
+        
+        tk.Label(form_frame, text="Date:", font=('Helvetica', 12), 
+                bg='#f3f4f6').grid(row=9, column=0, sticky="we", pady=5)
+        self.txtDate = tk.Entry(form_frame, font=('Helvetica', 12))
+        self.txtDate.grid(row=9, column=1, sticky="w", pady=5, padx=5)
+        self.txtDate.insert(0, datetime.now().strftime("%Y-%m-%d"))
+        
+        books = self.db.get_books()
+        book_titles = [book[1] for book in books]
+        self.txtBookTitle['values'] = book_titles
+        
+        # ---------------- Right Panel ---------------- #
+        right_panel = tk.LabelFrame(content_frame, text="📖 Book Details",
+                                  font=('Helvetica', 12, 'bold'), bg='#f3f4f6', fg='#111827')
+        right_panel.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=5, pady=5)
+        
+        search_frame = tk.Frame(right_panel, bg='#f3f4f6')
+        search_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        self.search_var = tk.StringVar()
+        tk.Label(search_frame, text="🔍 Search:", font=('Helvetica', 12), 
+                bg='#f3f4f6').pack(side=tk.LEFT, padx=5)
+        self.search_entry = tk.Entry(search_frame, textvariable=self.search_var, 
+                                   font=('Helvetica', 12))
+        self.search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+        
+        tk.Button(search_frame, text="Search", font=('Helvetica', 10), 
+                 bg=HEADER_COLOR, fg="white", command=self.search_books).pack(side=tk.LEFT, padx=5)
+        tk.Button(search_frame, text="Clear", font=('Helvetica', 10), 
+                 bg="#ef4444", fg="white", command=self.reset_search).pack(side=tk.LEFT, padx=5)
+        
+        book_list_frame = tk.Frame(right_panel, bg='#f3f4f6')
+        book_list_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        
+        self.book_list = tk.Listbox(book_list_frame, font=('Helvetica', 12))
+        self.book_list.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        scrollbar = tk.Scrollbar(book_list_frame)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.book_list.config(yscrollcommand=scrollbar.set)
+        scrollbar.config(command=self.book_list.yview)
+        
+        # ---------------- Transactions ---------------- #
+        transactions_frame = tk.Frame(main_container, bg='#ffffff')
+        transactions_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        self.library_table = ttk.Treeview(transactions_frame, 
+                                        columns=("op", "title", "name", "phone", "email", "date", "price"),
+                                        show="headings", height=8)
+        
+        for col, text in zip(("op", "title", "name", "phone", "email", "date", "price"),
+                           ("Operation", "Book Title", "Customer Name", "Phone", "Email", "Date", "Price")):
+            self.library_table.heading(col, text=text)
+            self.library_table.column(col, width=150, anchor=tk.W, stretch=True)
+        self.library_table.column("price", width=100, anchor=tk.E)
+        
+        self.library_table.pack(fill=tk.BOTH, expand=True)
+        
+        # ---------------- Buttons ---------------- #
+        buttons_frame = tk.Frame(main_container, bg='#ffffff')
+        buttons_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        buttons = [
+            ("Add Entry", HEADER_COLOR, self.add_data),
+            ("Reset", "#eab308", self.reset_form),
+            ("Export to PDF", "#22c55e", self.export_pdf),
+            ("Logout", "#CC5500", self.logout),
+            ("Exit", "#ef4444", self.exit_app)
+        ]
+        
+        for i, (text, color, command) in enumerate(buttons):
+            btn = tk.Button(buttons_frame, text=text, bg=color, fg="white",
+                           font=('Helvetica', 12, 'bold'), padx=15, pady=5,
+                           command=command)
+            btn.pack(side=tk.LEFT, padx=5, expand=True, fill=tk.X)
+        
+        self.load_books()
+        self.load_transactions()
+
+    # ---------------- Helper Methods ---------------- #
+    def update_book_price(self, event=None):
+        book_title = self.txtBookTitle.get()
+        operation = self.comboOperation.get()
+        if book_title and operation:
+            self.db.cursor.execute("SELECT price, rental_price FROM books WHERE title=?", (book_title,))
+            result = self.db.cursor.fetchone()
+            if result:
+                price = result[0] if operation == "Sale" else result[1]
+                self.txtBookPrice.config(state='normal')
+                self.txtBookPrice.delete(0, tk.END)
+                self.txtBookPrice.insert(0, f"${price:.2f}")
+                self.txtBookPrice.config(state='readonly')
+                self.update_total_price()
+
+    def update_total_price(self):
+        total_price = sum(float(book[3].replace('$', '')) for book in self.selected_books)
+        self.total_price_var.set(f"${total_price:.2f}")
+
+    def add_book_to_transaction(self):
+        book_title = self.txtBookTitle.get()
+        operation = self.comboOperation.get()
+        price = self.txtBookPrice.get()
+        
+        if not all([book_title, operation, price]):
+            messagebox.showwarning("Input Error", "Please select operation type and book title!")
+            return
+        
+        self.db.cursor.execute("SELECT id, quantity FROM books WHERE title=?", (book_title,))
+        result = self.db.cursor.fetchone()
+        if not result or result[1] <= 0:
+            messagebox.showerror("Error", "Book not found or out of stock!")
+            return
+        
+        book_info = (result[0], book_title, operation, price)
+        if book_info not in self.selected_books:
+            self.selected_books.append(book_info)
+            self.selected_books_list.insert(tk.END, f"{book_title} - {operation} - {price}")
+            self.txtBookTitle.set("")
+            self.txtBookPrice.config(state='normal')
+            self.txtBookPrice.delete(0, tk.END)
+            self.txtBookPrice.config(state='readonly')
+            self.update_total_price()
+
+    def remove_book_from_transaction(self):
+        selection = self.selected_books_list.curselection()
+        if not selection:
+            messagebox.showwarning("Selection Error", "Please select a book to remove!")
+            return
+        
+        index = selection[0]
+        self.selected_books.pop(index)
+        self.selected_books_list.delete(index)
+        self.update_total_price()
+
+    def load_books(self):
+        books = self.db.get_books()
+        self.book_list.delete(0, tk.END)
+        for book in books:
+            self.book_list.insert(tk.END, f"{book[1]} by {book[2]} - ${book[4]:.2f} (Qty: {book[6]})")
+
+    def load_transactions(self):
+        for item in self.library_table.get_children():
+            self.library_table.delete(item)
+        
+        transactions = self.db.get_transactions()
+        for trans in transactions:
+            price = f"${trans[6]:.2f}" if trans[6] is not None else "$0.00"
+            self.library_table.insert("", tk.END, values=(*trans[:6], price))
+
+    def reset_form(self):
+        self.comboOperation.set("")
+        self.txtBookTitle.set("")
+        self.txtBookPrice.config(state='normal')
+        self.txtBookPrice.delete(0, tk.END)
+        self.txtBookPrice.config(state='readonly')
+        self.selected_books = []
+        self.selected_books_list.delete(0, tk.END)
+        self.total_price_var.set("$0.00")
+        self.txtCustomerName.delete(0, tk.END)
+        self.txtPhone.delete(0, tk.END)
+        self.txtEmail.delete(0, tk.END)
+        self.txtDate.delete(0, tk.END)
+        self.txtDate.insert(0, datetime.now().strftime("%Y-%m-%d"))
+
+    def export_pdf(self):
+        if not self.selected_books:
+            messagebox.showerror("Missing Info", "Please add at least one book!")
+            return
+
+        customer_name = self.txtCustomerName.get()
+        phone = self.txtPhone.get()
+        email = self.txtEmail.get()
+        date = self.txtDate.get()
+
+        if not all([customer_name, phone, email, date]):
+            messagebox.showerror("Missing Info", "Please fill all customer information fields!")
+            return
+
+        file_name = f"transaction_{random.randint(1000, 9999)}.pdf"
+        export_pdf(file_name, customer_name, phone, email, date, self.selected_books)
+
+        messagebox.showinfo("Exported", f"PDF exported successfully as {file_name}")
+
+    def add_data(self):
+        if not self.selected_books:
+            messagebox.showwarning("Input Error", "Please add at least one book!")
+            return
+        
+        customer_name = self.txtCustomerName.get()
+        phone = self.txtPhone.get()
+        email = self.txtEmail.get()
+        date = self.txtDate.get()
+        
+        if not all([customer_name, phone, email, date]):
+            messagebox.showerror("Missing Info", "Please fill all customer information fields!")
+            return
+        
+        for book_id, book_title, operation, price in self.selected_books:
+            price_value = float(price.replace('$', ''))
+            self.db.add_transaction(operation, book_id, customer_name, phone, email, date, price_value)
+            self.library_table.insert("", tk.END, values=(
+                operation, book_title, customer_name, phone, email, date, f"${price_value:.2f}"
+            ))
+        
+        self.reset_form()
+        messagebox.showinfo("Success", "Transaction added successfully!")
+        self.load_transactions()
+
+    def search_books(self):
+        keyword = self.search_var.get().lower()
+        if not keyword:
+            messagebox.showwarning("Empty Search", "Please enter a search keyword.")
+            return
+        
+        books = self.db.get_books(keyword)
+        self.book_list.delete(0, tk.END)
+        for book in books:
+            self.book_list.insert(tk.END, f"{book[1]} by {book[2]} - ${book[4]:.2f} (Qty: {book[6]})")
+
+    def reset_search(self):
+        self.search_var.set("")
+        self.load_books()
+
+    def exit_app(self):
+        confirm = messagebox.askyesno("Exit", "Are you sure you want to exit?")
+        if confirm:
+            self.root.destroy()
+
+    def logout(self):
+        confirm = messagebox.askyesno("Logout", "Do you want to logout?")
+        if confirm:
+            from ui.login import LoginApp
+            self.clear_window()
+            LoginApp()

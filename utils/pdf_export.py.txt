@@ -1,0 +1,58 @@
+from reportlab.pdfgen import canvas
+
+def export_pdf(file_name, customer_name, phone, email, date, selected_books):
+    c = canvas.Canvas(file_name)
+    width, height = c._pagesize
+
+    # Invoice title
+    c.setFillColorRGB(0.1, 0.3, 0.6)
+    c.setFont("Helvetica-Bold", 24)
+    c.drawCentredString(width / 2, height - 50, "📚 Bookstore & Rental Receipt")
+
+    # Customer information
+    c.setFont("Helvetica-Bold", 14)
+    c.setFillColorRGB(0, 0, 0)
+    c.drawString(50, height - 90, "Customer Information:")
+    c.setFont("Helvetica", 12)
+    c.drawString(70, height - 110, f" Name: {customer_name}")
+    c.drawString(70, height - 130, f" Phone: {phone}")
+    c.drawString(70, height - 150, f" Email: {email}")
+    c.drawString(70, height - 170, f" Date: {date}")
+
+    # Table header
+    y = height - 210
+    c.setFont("Helvetica-Bold", 12)
+    c.setFillColorRGB(0.2, 0.2, 0.2)
+    c.drawString(50, y, "Type")
+    c.drawString(150, y, "Book Title")
+    c.drawString(400, y, "Price")
+    c.line(45, y - 5, width - 50, y - 5)
+
+    # Books details
+    y -= 25
+    c.setFont("Helvetica", 12)
+    c.setFillColorRGB(0, 0, 0)
+    total_price = 0
+    for book in selected_books:
+        op_type, title, price = book[2], book[1], book[3]
+        c.drawString(50, y, op_type)
+        c.drawString(150, y, title)
+        c.drawString(400, y, price)
+        total_price += float(price.replace('$', ''))
+        y -= 20
+        if y < 100:
+            c.showPage()
+            y = height - 100
+
+    # Total
+    y -= 10
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, y, f"💰 Total Amount: ${total_price:.2f}")
+
+    # Footer
+    y -= 40
+    c.setFont("Helvetica-Oblique", 11)
+    c.drawString(50, y, "Thank you for choosing our Bookstore & Rental System ❤️")
+    c.drawString(50, y - 20, "© 2025 Bookstore App")
+
+    c.save()

@@ -1,0 +1,104 @@
+import tkinter as tk
+from tkinter import messagebox
+import re
+
+BACKGROUND_COLOR = "#f7f7f9"
+HEADER_COLOR = '#4f46e5'
+BUTTON_COLOR = '#4f46e5'
+FONT = ("Arial", 12)
+
+class RegisterApp:
+    def __init__(self, root, db):
+        self.root = root
+        self.db = db
+        self.show_register()
+
+    def clear_window(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+    def show_register(self):
+        self.clear_window()
+        self.root.title("Create New Account")
+        self.root.configure(bg=BACKGROUND_COLOR)
+
+        header = tk.Label(self.root, text="📘 Create New Account", bg=HEADER_COLOR, 
+                          fg="white", font=("Arial", 16, "bold"), pady=15)
+        header.pack(fill="x")
+
+        main_container = tk.Frame(self.root, bg=BACKGROUND_COLOR)
+        main_container.pack(expand=True, fill=tk.BOTH, padx=20, pady=20)
+
+        form_container = tk.Frame(main_container, bg=BACKGROUND_COLOR)
+        form_container.pack(expand=True)
+
+        form_title = tk.Label(form_container, text="📝 Registration Form", 
+                             font=("Arial", 20, "bold"), fg="#4f46e5", 
+                             bg=BACKGROUND_COLOR, pady=10)
+        form_title.pack()
+
+        form_frame = tk.Frame(form_container, bg=BACKGROUND_COLOR, padx=20, pady=10)
+        form_frame.pack()
+
+        def add_field(label_text, emoji, row):
+            label = tk.Label(form_frame, text=f"{emoji} {label_text}", font=FONT,
+                            bg=BACKGROUND_COLOR, anchor="e")
+            label.grid(row=row, column=0, pady=8, sticky="e", padx=(0, 20))
+            
+            entry = tk.Entry(form_frame, font=FONT, width=30,
+                            show="*" if "Password" in label_text else "")
+            entry.grid(row=row, column=1, pady=8, sticky="w")
+            return entry
+
+        self.full_name_entry = add_field("Full Name:", "👤", 0)
+        self.username_entry = add_field("Username:", "🧑", 1)
+        self.email_entry = add_field("Email:", "📧", 2)
+        self.password_entry = add_field("Password:", "🔒", 3)
+        self.confirm_password_entry = add_field("Confirm Password:", "🔒", 4)
+
+        btn_frame = tk.Frame(form_container, bg=BACKGROUND_COLOR)
+        btn_frame.pack(pady=20)
+
+        signup_btn = tk.Button(btn_frame, text="Sign Up", bg=BUTTON_COLOR, fg="white",
+                               font=("Arial", 12, "bold"), padx=20, pady=5,
+                               command=self.register)
+        signup_btn.pack(side=tk.LEFT, padx=10)
+
+        back_btn = tk.Button(btn_frame, text="Back to Login", bg="#6c757d", fg="white",
+                            font=("Arial", 12, "bold"), padx=15, pady=5,
+                            command=self.back_to_login)
+        back_btn.pack(side=tk.LEFT, padx=10)
+
+    def register(self):
+        full_name = self.full_name_entry.get()
+        username = self.username_entry.get()
+        email = self.email_entry.get()
+        password = self.password_entry.get()
+        confirm_password = self.confirm_password_entry.get()
+        
+        if not all([full_name, username, email, password, confirm_password]):
+            messagebox.showerror("Error", "Please fill all fields")
+            return
+        
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            messagebox.showerror("Error", "Invalid email format")
+            return
+        
+        if len(password) < 6:
+            messagebox.showerror("Error", "Password must be at least 6 characters")
+            return
+        
+        if password != confirm_password:
+            messagebox.showerror("Error", "Passwords do not match")
+            return
+        
+        if self.db.add_user(full_name, username, email, password):
+            messagebox.showinfo("Success", "Account created successfully!")
+            self.back_to_login()
+        else:
+            messagebox.showerror("Error", "Username already exists")
+
+    def back_to_login(self):
+        from ui.login import LoginApp
+        self.clear_window()
+        LoginApp()

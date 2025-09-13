@@ -1,0 +1,106 @@
+import tkinter as tk
+from tkinter import messagebox
+from database import Database
+from ui.register import RegisterApp
+from ui.library import LibraryApp
+
+BACKGROUND_COLOR = "#f7f7f9"
+HEADER_COLOR = '#4f46e5'
+BUTTON_COLOR = '#4f46e5'
+FONT = ("Arial", 12)
+
+class LoginApp:
+    def __init__(self):
+        self.db = Database()
+        self.root = tk.Tk()
+        self.root.state('zoomed')
+        self.show_login()
+        self.root.mainloop()
+
+    def clear_window(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+    def show_login(self):
+        self.clear_window()
+        self.root.title("Bookstore & Rental System - Login")
+        self.root.state('zoomed')
+        self.root.configure(bg=BACKGROUND_COLOR)
+
+        header = tk.Label(self.root, text="Bookstore & Rental System", bg=HEADER_COLOR,
+                        fg="white", font=("Arial", 16, "bold"), pady=15)
+        header.pack(fill="x")
+
+        container = tk.Frame(self.root, bg=BACKGROUND_COLOR)
+        container.pack(expand=True)
+
+        title_label = tk.Label(container, text="🔑 Login", bg=BACKGROUND_COLOR,
+                            font=("Arial", 20, "bold"), fg=HEADER_COLOR)
+        title_label.pack(pady=(0, 30))
+
+        form_frame = tk.Frame(container, bg=BACKGROUND_COLOR)
+        form_frame.pack()
+
+        def add_field(label_text, emoji, row, show=None):
+            field_frame = tk.Frame(form_frame, bg=BACKGROUND_COLOR)
+            field_frame.grid(row=row, column=0, sticky="ew", pady=5)
+
+            icon_label = tk.Label(field_frame, text=emoji, font=("Arial", 14), 
+                                bg=BACKGROUND_COLOR, width=3, anchor="e")
+            icon_label.pack(side=tk.LEFT, padx=(0, 5))
+
+            label = tk.Label(field_frame, text=label_text, font=FONT,
+                            bg=BACKGROUND_COLOR, anchor="w", width=15)
+            label.pack(side=tk.LEFT)
+
+            entry = tk.Entry(field_frame, font=FONT, width=25, show=show,
+                            highlightthickness=1, highlightbackground="#cccccc",
+                            highlightcolor=HEADER_COLOR)
+            entry.pack(side=tk.LEFT, padx=(5, 0), ipady=3)
+            return entry
+
+        self.username_entry = add_field("Username", "👤", 0)
+        self.password_entry = add_field("Password", "🔒", 1, show="*")
+
+        btn_frame = tk.Frame(container, bg=BACKGROUND_COLOR)
+        btn_frame.pack(pady=25)
+
+        login_btn = tk.Button(btn_frame, text="🔑 Log In", bg=BUTTON_COLOR, fg="white",
+                            font=("Arial", 12, "bold"), padx=15, pady=5,
+                            command=self.login, compound=tk.LEFT)
+        login_btn.pack()
+
+        footer_frame = tk.Frame(container, bg=BACKGROUND_COLOR)
+        footer_frame.pack(pady=10)
+
+        footer_text = tk.Label(footer_frame, text="Don't have an account? ", 
+                            bg=BACKGROUND_COLOR, fg="gray", font=("Arial", 10))
+        footer_text.pack(side=tk.LEFT)
+
+        signup_link = tk.Label(footer_frame, text="Sign Up", bg=BACKGROUND_COLOR,
+                            fg="#6A1B9A", font=("Arial", 10, "underline"), 
+                            cursor="hand2")
+        signup_link.pack(side=tk.LEFT)
+        signup_link.bind("<Button-1>", lambda e: self.show_register())
+
+    def login(self):
+        username = self.username_entry.get()
+        password = self.password_entry.get()
+
+        if username == "" or password == "":
+            messagebox.showerror("Error", "Please fill in all fields")
+            return
+
+        user = self.db.validate_user(username, password)
+        if user:
+            self.show_library()
+        else:
+            messagebox.showerror("Error", "Invalid username or password")
+
+    def show_register(self):
+        self.clear_window()
+        RegisterApp(self.root, self.db)
+
+    def show_library(self):
+        self.clear_window()
+        LibraryApp(self.root, self.db)
