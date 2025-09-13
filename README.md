@@ -32,6 +32,3 @@ Screenshots of the UI are available in the `/screenshots` folder.
 2. Navigate to the project folder:  
 ```bash
 cd bookstore-rental-system
-
-📜 License
-This project was created by PySquad for educational purposes. You are free to learn from it, but not allowed to use it commercially without permission.
